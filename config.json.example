@@ -1,0 +1,8 @@
+{"sql":{"adress":"0.0.0.0",
+        "port":"3306",
+        "username":"credentials_username",
+        "password":"credentials_password",
+        "database":"covid_vaccine_new",
+        "metadata_columns":"cell_subset"
+        }
+}
