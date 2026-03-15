@@ -1,2 +1,6 @@
+data_imports
+data_processed
+lpa_input
+lpa_results
 config.json
 source\__pycache__
