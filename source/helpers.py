@@ -29,6 +29,36 @@ protein = {"TTT" : "F", "CTT" : "L", "ATT" : "I", "GTT" : "V",
             }
 
 
+#########################################
+# custom function to round numbers upward
+def round_up(number):
+    num_dec = number
+    num_round = round(number)
+    
+    if num_round < num_dec:
+        value = num_round + 1
+    else:
+        value = num_round
+    return value
+
+
+##################################################################
+# Custom function that deletes selected files from specific folder
+def pruge_file(dir_path : str,
+               files_2keep : list):
+    """
+    dir_path : str -> absulote path of the dir to be pruged
+    files_2keep : list -> list of files to keep in the dir_path folder 
+    """
+    dir_list = os.listdir(dir_path)
+    files_2delete = [os.path.join(dir_path, i) for i in dir_list if i not in files_2keep]
+
+    for i in files_2delete:
+        os.remove(i)
+
+    print(f"> folder {dir_path} purged from the following files: {files_2delete}")
+
+
 ################################################################################$$##########
 # Reading information from json file. Used to extract the parameters from the `config.json`.
 def read_json(path:str = "config.json") -> dict:
