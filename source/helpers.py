@@ -1,5 +1,6 @@
 #########
 # Imports
+import matplotlib.pyplot as plt
 from sqlalchemy import create_engine
 import pandas as pd
 import numpy as np
@@ -247,3 +248,12 @@ def nt_transalte_104(cdr_seq:str,
                          value= reg_list)
 
     return trimer_result #, reg_list # results_aa_cleaned
+
+
+#####################################
+def name_cmap(cmap_name:str) -> list:
+    cmap_hex = []
+    for color in plt.get_cmap(cmap_name).colors:
+        hex_color = '#{:02x}{:02x}{:02x}'.format(int(color[0]*255), int(color[1]*255), int(color[2]*255))
+        cmap_hex.append(hex_color)
+    return cmap_hex

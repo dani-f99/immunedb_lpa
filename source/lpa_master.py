@@ -13,8 +13,8 @@ from scipy.special import lambertw
 from sklearn import decomposition as skd
 from sklearn.preprocessing import StandardScaler
 
-from algo import symmetrized_KLD, entropy
-from helpers import write
+from .lpa_algo import symmetrized_KLD, entropy
+from .lpa_helpers import write
 
 
 class Matrix:
