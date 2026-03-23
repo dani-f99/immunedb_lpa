@@ -349,15 +349,17 @@ class lpa_prep():
                     
                     # Importing the metadata csv and orginizing the dataframe for the relevent information.
                     metadata = pd.read_csv(metadata_loc, index_col=0)
-                    metadata_df = metadata.groupby(["sample_id","key"]).describe().reset_index()[[("sample_id",""), ("key",""), ("value","top")]].droplevel(level=1,axis=1)
-                    metadata_df = metadata_df[metadata_df.key.isin(metadata_list)]
-                    
-                    # Creating metadata dataframe in order to join it's values to the sequences dataframe
-                    data_mtdata = []
-                    for j in metadata_df.key.unique():
-                        data_mtdata.append(metadata_df[metadata_df.key==j].drop("key",axis=1).rename({"value":j},axis=1).reset_index(drop=True))
-                    
-                    result_metadata = pd.concat(data_mtdata, axis=1).T.drop_duplicates().T[["sample_id"] + metadata_list]
+                  
+                    # Filter metadata to only the keys we need
+                    metadata_filtered = metadata[metadata['key'].isin(metadata_list)]
+
+                    # Pivot from long (key/value) to wide (columns of keys)
+                    # Using aggfunc='first' safely handles any duplicate sample_id/key combinations
+                    result_metadata = metadata_filtered.pivot_table(
+                                                                index='sample_id', 
+                                                                columns='key', 
+                                                                values='value', 
+                                                                aggfunc='first').reset_index()
 
                     # Renaming the metadata columns names according to the rename_metadata & new_metadata_names arguments
                     if metadata_rename is not None:
@@ -367,14 +369,7 @@ class lpa_prep():
                     
                 
                     # Placing the metadata values into the sequcnes dataframe
-                    result_dict = {i[1]:[i[2],i[3]] for i in result_metadata.itertuples()}
-                    
-                    seqs[metadata_list] = np.nan
-                    for i in seqs.sample_id.unique():
-                        if i in result_dict.keys():
-                            seqs.loc[seqs.sample_id == i, metadata_list] = result_dict[i]
-
-                    #seqs[metadata_list] = list(seqs.sample_id.apply(lambda X : result_dict[X]).values)
+                    seqs = seqs.merge(result_metadata[['sample_id'] + metadata_list], on="sample_id", how="left")
                     self.cleaned_seqs = seqs.copy()
 
                     # Creating unique sequences only dataframe
@@ -385,6 +380,11 @@ class lpa_prep():
                     self.dropped_3dv = self.cleaned_seqs[(self.cleaned_seqs.germline.str.count("-")%3 != 0) | (self.cleaned_seqs.sequence.str.count("-")%3 != 0)]
                     self.cleaned_seqs = self.cleaned_seqs[(self.cleaned_seqs.germline.str.count("-")%3 == 0) & (self.cleaned_seqs.sequence.str.count("-")%3 == 0)]
 
+                    # Remove null values
+                    # Remove non functional clones
+                    self.cleaned_seqs = self.cleaned_seqs.dropna(axis=0, how="any")
+                    self.cleaned_seqs = self.cleaned_seqs[(self.cleaned_seqs.functional == 1)]
+
                     # Saving the the cleaned sequences data into the defualt location
                     self.cleaned_seqs.to_csv(cleaned_seqs_path)
                     ("> 'cleaned_seqs.csv' saved to processed_data folder.")
@@ -393,7 +393,7 @@ class lpa_prep():
     def create_documents(self,
                          document,
                          substitution_element : str = None,
-                         trimer_source : str = None,
+                         trimer_source : str = "top_seq",
                          metric_dataframe : pd.DataFrame = None,
                          overwrite : bool = False):
         
