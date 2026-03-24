@@ -3,7 +3,5 @@
         "username":"username_here",
         "password":"password_here",
         "database":"database_name_here",
-        "metadata_columns":"metdata_column1,metdata_column2",
-        "rename_metdata_columns":"metdata_column1_new_name,metdata_column2_new_name"
         }
 }

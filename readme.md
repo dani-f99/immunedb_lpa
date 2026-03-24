@@ -21,11 +21,14 @@ Please ensure the following python modules are installed:
 - `SciPy`
 - `tqdm`
 - `sqlalchemy`
+- `natsort`
+- `matplotlib`
+- `seaborn`
 
 
 ## 3. USAGE GUIDE
-1. Congifgure the `congif.json` file (see section 4 - config) by:
-   - rename `congif.json.example` to `congif.json`.
+1. Congifgure the `config.json` file (see section 4 - config) by:
+   - rename `config.json.example` to `congif.json`.
    - Fill the sql connection and database information as illusrated.
    - Once the custom python modules will be loaded the script will initiate
    the required folders and import the `congif.json` information into `config`
@@ -45,7 +48,6 @@ before program usage:
   - `username` - username credentials used to connect to the MySQL server.
   - `password` - password credentials used to connect to the MySQL server.
   - `database`- database name in the MySQL server. 
-  - `metadata_columns` - Required metadata columns.
 
 
 ## 5. Pipeline Steps & Components
@@ -59,13 +61,10 @@ before program usage:
 
 
 ## 5. DIRECTORY STRUCTURE
- * data_raw -> Folder which contains the raw tables downloaded from the sql server.
+ * data_imports -> Folder which contains the raw tables downloaded from the sql server.
  * data_processed -> Processed tables used for the analysis.
-   * data_processed/raw_processed -> Modified raw tables, to be turned into the LPA input.
-   * data_processed/lpa_input -> LPA input file.
- * reports -> Run reports, consult incase of error.
- * results_figures -> Figure output folder.
- * results_tables -> Tables results folder.
+ * lpa_input -> Documents tables used as lpa input.
+ * lpa_results -> figures and tables results of the lpa analysis.
  * source -> Source code.
 
 
