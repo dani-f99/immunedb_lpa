@@ -14,7 +14,7 @@ import os
 
 class lpa_analysis():
     def __init__(self,
-                 metric : str = 'substitution_survival',
+                 metric : str,
                  min_treshold : int = 0,
                  keep_zero_freq : bool = True,
                  lpa_input = None,
