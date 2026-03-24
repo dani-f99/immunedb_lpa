@@ -15,7 +15,7 @@ import os
 class lpa_analysis():
     def __init__(self,
                  metric : str,
-                 min_treshold : int = 0,
+                 min_treshold : int = 100,
                  keep_zero_freq : bool = True,
                  lpa_input = None,
                  label_dict : dict = None):

@@ -1,5 +1,6 @@
 import source.helpers as helpers
 from natsort import natsorted
+from tqdm import tqdm
 import seaborn as sns
 import pandas as pd
 import numpy as np
@@ -450,7 +451,7 @@ class lpa_prep():
 
                     documents_df = []
 
-                    for doc in natsorted(grouped_df.document.unique()):
+                    for doc in tqdm(natsorted(grouped_df.document.unique())):
                         og_doc = grouped_df[grouped_df["document"] == doc]
                         temp_df = pd.DataFrame({"document":doc, "element":range(1, 105), "frequency_in_document":0})
                         temp_df.loc[temp_df.element.isin(og_doc.element),"frequency_in_document"] = og_doc["frequency_in_document"].values
@@ -497,13 +498,13 @@ class lpa_prep():
                     unique_clones = []
                     n_ulbl = len(cleaned_seqs.label.unique())
                     print(f"> Itirating over sub-datasets (n={n_ulbl})")
-                    for ulbl in cleaned_seqs.label.unique():
+                    for ulbl in tqdm(cleaned_seqs.label.unique()):
                         temp_output = input_df[input_df.label == ulbl]
                         unique_clones.append([ulbl, temp_output.shape[0]]) # save the unique number of sequences per dataset
                         temp_output = (temp_output.cdr3_aa + "." + temp_output[source_dict[source]]).apply(helpers.nt_transalte_104)
                         temp_df = None
 
-                        print(f"Concatenating {ulbl} sub-dataset analysis results") #[{}/{n_ulbl}]")
+                        #print(f"Concatenating {ulbl} sub-dataset analysis results") #[{}/{n_ulbl}]")
                         for nij in temp_output:
                             if nij is None:
                                 temp_df = nij
