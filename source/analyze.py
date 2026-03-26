@@ -14,18 +14,22 @@ import os
 
 class lpa_analysis():
     def __init__(self,
-                 metric : str,
+                 metric : str = 'substitution_survival',
                  min_treshold : int = 100,
-                 keep_zero_freq : bool = True,
-                 lpa_input = None,
-                 label_dict : dict = None):
+                 drop_rare_elements : bool = True,
+                 element_treshold : int = 10,
+                 entity_treshold : float = 0.9,
+                 lpa_input = None):
     
         """
         metric : str -> Data analysis metric. "substitution_survival" or "trimers_usage".
         lpa_input : pd.DataFrame / str -> string path or dataframe variable of lpa input csv.
         min_treshold: int -> treshold for number of trimers in documents, lower values from this treshold will be dropped.
+        drop_rare_elements : bool -> will drop element which don't appear in at least 80% of entities.
+        elemnt_treshold : int -> the minimal count of element required for retention.
+        entity_treshold : minimal fraction of entites which must contain the element in order to preserve it.
         keep_zero_freq: -> Keeping trimers with zero occurnces, the LPA algorithm drops them automaticly.
-        label_dict : dict ->
+        label_dict : dict -> non-functional argument.
         """
         
         # Setting lpa paths
@@ -59,19 +63,19 @@ class lpa_analysis():
             print(f"> The following document havn't met the treshold ({str(min_treshold)}):")
             print(doc_max.loc[doc_max.document.isin(self.low_docs), ["document", "frequency_in_document"]])
 
-        if keep_zero_freq:
-            unique_trimers =  np.sort(self.lpa_input.element.unique())
-            unique_labels = self.lpa_input.document.unique()
-            template_df = pd.DataFrame(index=unique_trimers)
+        # Removing elements with less than 10 occurnces whitin document & dropping those elements if they dosnt appear in at
+        # least 80% of entities.
+        if drop_rare_elements:
+            # `Zeroing` element with count lesser than element_treshold.
+            self.lpa_input.loc[self.lpa_input.frequency_in_document < element_treshold,:] = 0
+            self.lpa_input  = self.lpa_input [self.lpa_input.frequency_in_document != 0]
 
-            temp_dfs = []
-            for label in unique_labels:
-                input_df = self.lpa_input[self.lpa_input.document == label].set_index("element")["frequency_in_document"]
-                conc_df = pd.concat([template_df, input_df], axis=1).fillna(0).astype("int")
-                conc_df["document"] = label
-                temp_dfs.append(conc_df)
+            # Dropping elements from the data which dosent appear in at least 90% of the entities.
+            n_entites = len(self.lpa_input.document.unique())
+            nentites_df = self.lpa_input.groupby("element").agg({"document":"nunique"}).reset_index()
+            nentites_df = nentites_df[nentites_df.document >= entity_treshold * n_entites]
 
-            self.lpa_input = pd.concat(temp_dfs, axis=0).reset_index(drop=False, names="element")[["document", "element", "frequency_in_document"]]
+            self.lpa_input = self.lpa_input[self.lpa_input.element.isin(nentites_df.element.unique())]
         
 
         # Replacing zeros with null values
@@ -149,6 +153,11 @@ class lpa_analysis():
         for xtick, xcolor in zip(ax.get_xticklabels(), ["red" if i in range_cdr else "blue" for i in domain_df.T.columns]):
             xtick.set_color(xcolor)
 
+        if self.metric == "trimers_usage":
+            ax.set_xticks([])
+            ax.set_xticklabels([])
+            ax.set_xlabel("", fontsize=15)
+
         if save_fig == True:
             fig.savefig(os.path.join(self.lpa_output_path,"heatmap.png"), bbox_inches='tight')
 
@@ -171,7 +180,9 @@ class lpa_analysis():
                 plt.bar(x=self.pca_df.columns, height=pca_evar)
                 plt.xlabel("PC")
                 plt.ylabel("Explaned Variance")
+                plt.xticks(rotation=90)
                 plt.show()
+
                 
             return self.pca_df, self.pca_var
 
